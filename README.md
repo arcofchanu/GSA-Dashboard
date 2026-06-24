@@ -20,11 +20,11 @@ The **GSAIS Dashboard** provides a responsive and visually engaging environment 
 It processes your raw submissions offline and turns them into actionable insights through interactive charts, a model-behavior matrix, and an exploratory payload viewer. 
 
 ### Key Features
-- **Offline & Secure:** Runs entirely locally in your browser. Uploading a JSON file never transmits data to an external server.
-- **Drag & Drop:** Simply drop your exported JSON file into the sidebar to instantly load the dashboard.
-- **Deep Analytics:** Visualize your wins across different AI models and behaviors using interactive charts powered by Chart.js.
-- **Exploratory Payload Grid:** Browse all approved payloads. Filter by model, behavior, or run text searches. 
-- **Payload Modal:** Click any payload card to view the exact prompt, copy it, or open direct links to the original chat or validation page.
+- **Persistent Local Database:** Powered by IndexedDB, allowing you to securely upload and store multiple massive JSON datasets. It securely runs entirely offline in your browser.
+- **Instant File Switching:** Easily toggle between your uploaded JSON files without reloading the page via a sleek dropdown menu.
+- **Fully Responsive Mobile UI:** Enjoy a native-app-like experience on your phone, complete with an off-canvas slide-out hamburger menu and optimized responsive data grids.
+- **Dynamic Color Coding:** Automatically assigns unique, cohesive colors to different AI models across charts, payload cards, and modals for lightning-fast visual scanning.
+- **Advanced Analytics:** Visualize your wins using interactive Chart.js modules, including a stunning Spider Web (Radar) graph for behavioral analysis.
 
 ---
 
@@ -32,12 +32,13 @@ It processes your raw submissions offline and turns them into actionable insight
 
 ### 1. Overview Tab
 - **KPI Grid:** Get a rapid summary of Total Submissions, Approved/Rejected counts, Win Rate, and Average Attempts.
-- **Approved Payloads:** A filterable grid of all successful payloads. Each card shows the behavior, model, and a snippet of the payload. Click a card to expand it.
+- **Approved Payloads:** A filterable grid of all successful payloads. Each card features dynamic color-coded model tags and a payload snippet.
+- **Payload Modal:** Click any payload card to view the exact prompt, copy it, or jump straight to the original chat or validation page.
 
 ### 2. Analysis Tab
-- **Wins by Model & Behavior:** Bar charts to quickly identify the most vulnerable models or behaviors.
+- **Wins by Model:** A vibrant, color-coded bar chart mapping out which AI models are most vulnerable to your payloads.
+- **Wins by Behavior:** A sleek Radar (Spider Web) graph mapping the success rates across different behavioral axes.
 - **Model vs Behavior Matrix:** A cross-referenced table showing exact win counts for each specific behavior against each model.
-- **Payload Length Insights:** Metrics on the shortest (most elegant) and longest payloads.
 - **Wins Over Time:** A timeline chart tracking when submissions were successful.
 
 ---
@@ -46,5 +47,6 @@ It processes your raw submissions offline and turns them into actionable insight
 
 1. **Obtain Data:** Use the GSAIS Chrome Extension to export a JSON file from any Gray Swan Arena challenge.
 2. **Open the Dashboard:** Open `index.html` from this directory directly in your web browser (no web server required).
-3. **Load Data:** Drag and drop your `.json` file into the designated upload zone in the left sidebar, or click the "Or Browse" button to select the file.
-4. **Explore:** Switch between the **Overview** and **Analysis** tabs to explore your data!
+3. **Upload Data:** Drag and drop your `.json` file anywhere on the dashboard, or click the Upload icon in the top right. 
+4. **Manage Files:** Upload multiple datasets and switch between them instantly using the top-right dropdown list.
+5. **Explore:** Switch between the **Overview** and **Analysis** tabs to uncover new insights!
