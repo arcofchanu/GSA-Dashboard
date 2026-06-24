@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GSAIS Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="watermark"></div>
+  <div class="sidebar">
+    <h2>GSAIS</h2>
+    
+    <div class="filter-section">
+      <h3>Models</h3>
+      <div class="checklist" id="models-checklist">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <h3>Behaviors</h3>
+      <div class="checklist" id="behaviors-checklist">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+  
+  <div class="main-content">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h1>Dashboard</h1>
+        <div id="challenge-badge" class="badge hidden"></div>
+      </div>
+      <div class="header-actions">
+        <input type="file" id="file-input" accept=".json" hidden>
+        <button id="upload-btn" class="icon-btn" title="Upload JSON">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="analysis">Analysis</button>
+    </div>
+
+    <div id="overview-tab" class="tab-content active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <h3>Total Submissions</h3>
+          <p id="kpi-total">--</p>
+        </div>
+        <div class="kpi-card">
+          <h3>Approved</h3>
+          <p id="kpi-approved" class="text-green">--</p>
+        </div>
+        <div class="kpi-card">
+          <h3>Rejected</h3>
+          <p id="kpi-rejected" class="text-red">--</p>
+        </div>
+        <div class="kpi-card">
+          <h3>Win Rate</h3>
+          <p id="kpi-winrate">--</p>
+        </div>
+        <div class="kpi-card">
+          <h3>Avg Attempts</h3>
+          <p id="kpi-avg-attempts">--</p>
+        </div>
+      </div>
+
+
+      <div class="cards-section">
+        <div class="section-header">
+          <h3>Approved Payloads</h3>
+        <div class="filters-container">
+          <input type="text" id="search-input" placeholder="Search payloads...">
+        </div>
+      </div>
+        <div class="payload-grid" id="payload-grid">
+          <div class="empty-state">No data uploaded yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analysis-tab" class="tab-content">
+      <div class="analysis-grid">
+        
+
+        <div class="chart-container">
+          <h3>Wins by Model</h3>
+          <canvas id="modelChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3>Wins by Behavior</h3>
+          <canvas id="behaviorChart"></canvas>
+        </div>
+
+        <div class="analysis-card full-width">
+          <h3>Model vs Behavior Matrix</h3>
+          <div class="table-container">
+            <table id="matrix-table" class="data-table">
+              <thead>
+                <!-- Injected via JS -->
+              </thead>
+              <tbody>
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <h3>Payload Length Insights</h3>
+          <div class="insight-stats">
+            <div class="insight-stat">
+              <span class="label">Average Length</span>
+              <span class="value" id="insight-avg-len">--</span>
+            </div>
+            <div class="insight-stat">
+              <span class="label">Shortest Win</span>
+              <span class="value" id="insight-min-len">--</span>
+            </div>
+            <div class="insight-stat">
+              <span class="label">Longest Win</span>
+              <span class="value" id="insight-max-len">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <h3>Extreme Payloads</h3>
+          <div class="extreme-payloads">
+            <div class="extreme-box">
+              <div class="extreme-header">Shortest (Most Elegant)</div>
+              <div class="extreme-content" id="extreme-shortest">--</div>
+            </div>
+            <div class="extreme-box">
+              <div class="extreme-header">Longest</div>
+              <div class="extreme-content" id="extreme-longest">--</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-card full-width">
+          <h3>Wins Over Time</h3>
+          <div class="chart-wrapper">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial Upload Modal -->
+  <div id="initial-upload-modal" class="modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px; border-radius: 12px; background: var(--card-bg);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 24px; opacity: 0.8;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      <h2 style="margin-top: 0; margin-bottom: 16px; font-size: 1.5rem; color: var(--text-main); font-weight: 500;">Welcome to GSAIS</h2>
+      <p style="color: var(--text-muted); margin-bottom: 32px; line-height: 1.5; font-size: 1.05rem;">Please upload your extracted JSON file here to begin analyzing your arena submissions.</p>
+      <button id="initial-upload-btn" style="padding: 12px 32px; font-size: 1.05rem; border-radius: 8px;">Upload Extracted File</button>
+    </div>
+  </div>
+
+  <!-- Modal for Full Payload -->
+  <div id="payload-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Submission ID</h2>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-actions" id="modal-actions">
+          <!-- Action buttons injected here via JS -->
+        </div>
+        <div class="payload-full" id="modal-payload">
+          <!-- Payload content -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
