@@ -204,6 +204,7 @@ h1 {
   border: 1px solid var(--border);
   padding: 24px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  min-width: 0;
 }
 
 .kpi-card h3 {
@@ -489,6 +490,8 @@ input[type="text"]:focus {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin-bottom: 32px;
+  min-width: 0;
+  width: 100%;
 }
 
 .analysis-card {
@@ -500,6 +503,7 @@ input[type="text"]:focus {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .full-width {
@@ -521,6 +525,8 @@ input[type="text"]:focus {
 /* Data Tables */
 .table-container {
   overflow-x: auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .data-table {
@@ -619,6 +625,7 @@ input[type="text"]:focus {
   position: relative;
   height: 300px;
   width: 100%;
+  min-width: 0;
 }
 
 .watermark {
@@ -636,6 +643,14 @@ input[type="text"]:focus {
   pointer-events: none;
 }
 
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-overlay {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 900px) {
   body {
@@ -644,20 +659,54 @@ input[type="text"]:focus {
     height: auto;
   }
 
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .mobile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .sidebar {
-    width: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 16px;
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 280px;
+    height: 100vh;
+    z-index: 2000;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    transition: left 0.3s ease;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    left: 0;
   }
 
   .checklist {
-    max-height: 150px;
+    max-height: none;
   }
 
   .main-content {
     overflow-y: visible;
     padding: 16px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   header {
@@ -682,5 +731,55 @@ input[type="text"]:focus {
   input[type="text"] {
     width: 100%;
     box-sizing: border-box;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+    text-align: center;
+  }
+
+  .kpi-card h3 {
+    font-size: 0.65rem;
+    margin-bottom: 4px;
+    letter-spacing: 0;
+  }
+
+  .kpi-card p {
+    font-size: 1.4rem;
+  }
+
+  .kpi-card:nth-child(1),
+  .kpi-card:nth-child(2),
+  .kpi-card:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .kpi-card:nth-child(4),
+  .kpi-card:nth-child(5) {
+    grid-column: span 3;
+  }
+
+  .payload-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .payload-card {
+    padding: 8px;
+    min-height: 100px;
+  }
+
+  .payload-id {
+    font-size: 0.85rem;
+  }
+
+  .payload-card > div:nth-child(2) {
+    font-size: 0.7rem !important;
+    word-break: break-word;
   }
 }

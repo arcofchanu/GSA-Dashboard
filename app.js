@@ -7,6 +7,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const behaviorsChecklist = document.getElementById('behaviors-checklist');
   const initialUploadModal = document.getElementById('initial-upload-modal');
   const initialUploadBtn = document.getElementById('initial-upload-btn');
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const sidebar = document.getElementById('sidebar');
+  const mobileOverlay = document.getElementById('mobile-overlay');
+
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      mobileOverlay.classList.add('active');
+    });
+  }
+
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      mobileOverlay.classList.remove('active');
+    });
+  }
 
   let currentData = null;
 
