@@ -1,3 +1,54 @@
+const DB_NAME = 'GSAIS_DB';
+const DB_VERSION = 1;
+const STORE_NAME = 'files';
+let db;
+
+const MODEL_COLORS = [
+  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+  '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1'
+];
+
+window.getModelColor = function(modelName) {
+  let hash = 0;
+  for (let i = 0; i < modelName.length; i++) {
+    hash = modelName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return MODEL_COLORS[Math.abs(hash) % MODEL_COLORS.length];
+};
+
+function initDB(callback) {
+  const request = indexedDB.open(DB_NAME, DB_VERSION);
+  request.onupgradeneeded = (e) => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains(STORE_NAME)) {
+      db.createObjectStore(STORE_NAME, { keyPath: 'name' });
+    }
+  };
+  request.onsuccess = (e) => {
+    db = e.target.result;
+    callback();
+  };
+  request.onerror = (e) => console.error("IndexedDB error:", e);
+}
+
+function saveFileToDB(name, data, callback) {
+  const transaction = db.transaction([STORE_NAME], 'readwrite');
+  const store = transaction.objectStore(STORE_NAME);
+  store.put({ name, data }).onsuccess = () => { if (callback) callback(); };
+}
+
+function loadAllFilesFromDB(callback) {
+  const transaction = db.transaction([STORE_NAME], 'readonly');
+  const store = transaction.objectStore(STORE_NAME);
+  store.getAll().onsuccess = (e) => callback(e.target.result);
+}
+
+function deleteFileFromDB(name, callback) {
+  const transaction = db.transaction([STORE_NAME], 'readwrite');
+  const store = transaction.objectStore(STORE_NAME);
+  store.delete(name).onsuccess = () => { if(callback) callback(); };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('file-input');
   const uploadBtn = document.getElementById('upload-btn');
@@ -10,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const sidebar = document.getElementById('sidebar');
   const mobileOverlay = document.getElementById('mobile-overlay');
+  const savedFilesDropdown = document.getElementById('saved-files-dropdown');
+  const deleteFileBtn = document.getElementById('delete-file-btn');
+
+  let currentData = null;
+  let allSavedFiles = [];
 
   if (mobileMenuBtn) {
     mobileMenuBtn.addEventListener('click', () => {
@@ -24,8 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileOverlay.classList.remove('active');
     });
   }
-
-  let currentData = null;
 
   // Tabs Logic
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -73,7 +127,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.files.length) {
       handleFile(e.target.files[0]);
     }
+    e.target.value = '';
   });
+
+  // Handle dropdown change
+  savedFilesDropdown.addEventListener('change', (e) => {
+    const selectedName = e.target.value;
+    const selectedFile = allSavedFiles.find(f => f.name === selectedName);
+    if (selectedFile) {
+      currentData = selectedFile.data;
+      updateDashboard(selectedFile.data);
+    }
+  });
+
+  // Handle delete click
+  deleteFileBtn.addEventListener('click', () => {
+    const selectedName = savedFilesDropdown.value;
+    if (!selectedName) return;
+    
+    deleteFileFromDB(selectedName, () => {
+      loadAllFilesFromDB((files) => {
+        allSavedFiles = files;
+        refreshUI();
+      });
+    });
+  });
+
+  function refreshUI() {
+    savedFilesDropdown.innerHTML = '';
+    if (allSavedFiles.length > 0) {
+      savedFilesDropdown.classList.remove('hidden');
+      deleteFileBtn.classList.remove('hidden');
+      initialUploadModal.classList.add('hidden');
+      
+      allSavedFiles.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.name;
+        opt.textContent = f.name;
+        savedFilesDropdown.appendChild(opt);
+      });
+      
+      // Load first file
+      currentData = allSavedFiles[0].data;
+      updateDashboard(allSavedFiles[0].data);
+    } else {
+      savedFilesDropdown.classList.add('hidden');
+      deleteFileBtn.classList.add('hidden');
+      initialUploadModal.classList.remove('hidden');
+      currentData = null;
+      document.getElementById('payload-grid').innerHTML = '<div class="empty-state">No data uploaded yet.</div>';
+      
+      document.getElementById('kpi-total').textContent = '--';
+      document.getElementById('kpi-approved').textContent = '--';
+      document.getElementById('kpi-rejected').textContent = '--';
+      document.getElementById('kpi-winrate').textContent = '--';
+      document.getElementById('kpi-avg-attempts').textContent = '--';
+      ChartManager.init({}, {}, {});
+    }
+  }
 
   let searchTimeout = null;
   searchInput.addEventListener('input', (e) => {
@@ -92,15 +203,30 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target.result);
-        currentData = json;
-        updateDashboard(json);
-        initialUploadModal.classList.add('hidden');
+        saveFileToDB(file.name, json, () => {
+          loadAllFilesFromDB((files) => {
+            allSavedFiles = files;
+            refreshUI();
+            // Select the newly uploaded file specifically
+            savedFilesDropdown.value = file.name;
+            currentData = json;
+            updateDashboard(json);
+          });
+        });
       } catch (err) {
         alert('Invalid JSON file.');
       }
     };
     reader.readAsText(file);
   }
+
+  // Initialize DB and load files
+  initDB(() => {
+    loadAllFilesFromDB((files) => {
+      allSavedFiles = files;
+      refreshUI();
+    });
+  });
 
   function updateDashboard(data) {
     // Badges
@@ -250,10 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cName = sub.challenge_name || 'Unknown Challenge';
     const mName = sub.model && sub.model !== 'unknown' ? sub.model : 'Unknown Model';
     const bName = sub.behavior || 'Unknown Behavior';
+    const mColor = window.getModelColor(mName);
     
     modalTitle.innerHTML = `
       <div style="font-size: 0.85em; color: var(--text-muted); font-weight: normal; margin-bottom: 8px;">
-        ${cName} <span style="margin: 0 8px; opacity: 0.5;">&bull;</span> <span style="color: var(--text-main);">${mName}</span>
+        ${cName} <span style="margin: 0 8px; opacity: 0.5;">&bull;</span> <span style="color: ${mColor};">${mName}</span>
       </div>
       <div style="font-size: 1.1em; color: #a78bfa; margin-bottom: 8px;">${bName}</div>
       <div style="font-size: 0.9em; font-weight: normal;">ID: ${sub.submission_id || 'N/A'}</div>
@@ -345,10 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const bName = sub.behavior || 'Unknown Behavior';
       const mName = sub.model && sub.model !== 'unknown' ? sub.model : 'Unknown Model';
       const payloadSnippet = sub.payload ? (sub.payload.substring(0, 100) + (sub.payload.length > 100 ? '...' : '')) : 'No Payload';
+      const mColor = window.getModelColor(mName);
       
+      card.style.borderLeft = `4px solid ${mColor}`;
+
       card.innerHTML = `
         <div class="payload-behavior" style="color: #a78bfa; font-weight: 500; margin-bottom: 4px; font-size: 0.95rem;">${bName}</div>
-        <div class="payload-model" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">${mName}</div>
+        <div class="payload-model" style="font-size: 0.8rem; color: ${mColor}; font-weight: 500; margin-bottom: 12px;">${mName}</div>
         <div class="payload-snippet" style="font-size: 0.85rem; font-family: monospace; color: var(--text-muted); text-align: left; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid var(--border); word-break: break-all;">${payloadSnippet}</div>
       `;
       

@@ -20,7 +20,7 @@ const ChartManager = {
         datasets: [{
           label: 'Wins',
           data: Object.values(data),
-          backgroundColor: '#3b82f6',
+          backgroundColor: Object.keys(data).map(m => window.getModelColor(m)),
           borderRadius: 4
         }]
       },
@@ -43,14 +43,18 @@ const ChartManager = {
     if (this.behaviorChartInstance) this.behaviorChartInstance.destroy();
 
     this.behaviorChartInstance = new Chart(ctx, {
-      type: 'bar',
+      type: 'radar',
       data: {
         labels: Object.keys(data),
         datasets: [{
           label: 'Wins',
           data: Object.values(data),
-          backgroundColor: '#8b5cf6', // A distinct purple color
-          borderRadius: 4
+          backgroundColor: 'rgba(139, 92, 246, 0.3)',
+          borderColor: '#8b5cf6',
+          pointBackgroundColor: '#8b5cf6',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#8b5cf6'
         }]
       },
       options: {
@@ -60,8 +64,12 @@ const ChartManager = {
           legend: { display: false }
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-          x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+          r: {
+            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            pointLabels: { color: '#a1a1aa', font: { size: 11, family: "'Outfit', sans-serif" } },
+            ticks: { display: false, beginAtZero: true, backdropColor: 'transparent' }
+          }
         }
       }
     });
